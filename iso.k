@@ -8,8 +8,7 @@ module ISO-SYNTAX
     syntax Exp ::= Int | Name
                  | "Nats"
                  | "Ints"
-                 | "Maps" "(" Exp "," Exp ")"
-                 | "function" "(" Exp "," Exp "," Exp ")"
+                 | Exp "->" Exp
                  | Name "|-->" Exp
                  | "(" Exp ")" [bracket]
     syntax Exps ::= List{Exp,","}
@@ -31,7 +30,7 @@ module ISO
         <T>
             <k> $PGM:Prog </k>
             <defs> .Map </defs>
-            <embeddings> Nats |-> SetItem(function(Nats, Ints, $x |--> $x)) </embeddings>
+            <embeddings> Nats |-> SetItem(member($x |--> $x, set(Nats -> Ints))) </embeddings>
         </T>
 
     rule .Prog => .
