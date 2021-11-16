@@ -1,0 +1,74 @@
+mod iso is
+    protecting QID .
+    protecting NAT .
+
+    sorts Exp Exps Stmt Stmts .
+
+    subsort Exp < Exps .
+
+    subsort Stmt < Stmts .
+
+    subsort Nat < Exp .
+    subsort Qid < Exp .
+
+    op nil : -> Exps [ctor] .
+    op _,_ : Exps Exps -> Exps [ctor assoc id: nil] .
+
+    ops Nats Ints : -> Exp [ctor] .
+    op _-->_ : Exp Exp -> Exp [ctor] .
+    op _|->_ : Qid Exp -> Exp [ctor] .
+    op {_} : Exps -> Exp [ctor] .
+    op Union : Exps -> Exp [ctor] .
+
+    op nil : -> Stmts [ctor] .
+    op __ : Stmts Stmts -> Stmts [ctor assoc id: nil] .
+
+    op Define_:=_. : Qid Exp -> Stmt [ctor] .
+    op Compute_. : Exp -> Stmt [ctor] .
+
+    sorts Val Vals .
+    subsort Val < Vals .
+
+    op nil : -> Vals [ctor] .
+    op _,_ : Vals Vals -> Vals [ctor assoc id: nil] .
+
+    op member : Exp Val -> Val [ctor] .
+    op powerset : Val -> Val [ctor] .
+    op set : Exp -> Val [ctor] .
+    op union : Vals -> Val [ctor] .
+
+    vars V W : Val .
+    vars Vs Ws Us : Vals .
+
+    eq union(Vs, V, Ws, V, Us) = union(Vs, V, Ws, Us) .
+
+    sorts Map Config .
+
+    op mt : -> Map [ctor] .
+    op _|->_ : Qid Val -> Map [ctor] .
+    op __ : Map Map -> Map [ctor comm assoc id: mt] .
+
+    op [_,_,_] : Stmts Map Map -> Config [ctor] .
+    op exec : Stmts -> Config .
+
+    var P : Stmts .
+
+    eq exec(P) = [P, mt, mt] .
+
+    vars X Y Z : Qid .
+    vars E E1 E2 : Exp .
+
+    vars M Defs Embeddings : Map .
+
+    vars N : Nat .
+
+    op resolveSet : Exp -> Val .
+    eq resolveSet(N) = set(Nats) .
+
+    rl [ Define X := E . P, Defs, Embeddings ]
+        =>
+       [ P, Defs (X |-> member(E, resolveSet(E))), Embeddings ] .
+endm
+
+rew exec(Define 't := 1 .) .
+

@@ -1,5 +1,5 @@
 module ISO-SYNTAX
-    imports DOMAINS-SYNTAX
+    imports DOMAINS
     imports BUILTIN-ID-TOKENS
 
     syntax Name ::= "$x"
@@ -11,10 +11,9 @@ module ISO-SYNTAX
                  | Exp "->" Exp
                  | Name "|-->" Exp
                  | "(" Exp ")" [bracket]
+                 | "{" Exps "}"
+                 | "Union" "(" Exps ")"
     syntax Exps ::= List{Exp,","}
-
-    syntax Val ::= member(Exp, Val)
-                 | set(Exp)
 
     syntax Stmt ::= "Define" Name ":=" Exp "."
                   | "Compute" Exp "."
@@ -25,6 +24,11 @@ endmodule
 module ISO
     imports DOMAINS
     imports ISO-SYNTAX
+
+    syntax Val ::= member(Exp, Val)
+                 | powerset(Val)
+                 | union(Set)
+                 | set(Exp)
 
     configuration
         <T>
@@ -37,13 +41,23 @@ module ISO
     rule S:Stmt P:Prog => S ~> P
 
     rule <k> Define A := E . => . ... </k>
-        <defs> ... .Map => A |-> resolveSets(E) </defs>
+        <defs> ... .Map => A |-> member(E, resolveSet(E)) </defs>
 
-    syntax Val ::= resolveSets(Exp) [function]
+    syntax Val ::= resolveSet(Exp) [function]
 
-    rule resolveSets(I:Int) => member(I, set(Nats))
+    rule resolveSet(I:Int) => set(Nats)
         requires I >=Int 0
-    rule resolveSets(I:Int) => member(I, set(Ints))
+    rule resolveSet(I:Int) => set(Ints)
         requires I <Int 0
+
+    rule resolveSet({ Es }) => union(resolveSets(Es))
+
+    syntax Exps ::= list2Exps(List) [function]
+    rule list2Exps(.List) => .Exps
+    rule list2Exps(ListItem(A) Rest) => A, list2Exps(Rest)
+
+    syntax Set ::= resolveSets(Exps) [function]
+    rule resolveSets(.Exps) => .Set
+    rule resolveSets(E, Es) => SetItem(resolveSet(E)) |Set resolveSets(Es)
 endmodule
 
